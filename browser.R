@@ -1,16 +1,3 @@
-#library(rtracklayer)
-#allChromosomeCoverage <- import.bw("/mnt/gtklab01/linglab/tdp43/STAR/tdp43_cnp_spc_p21/SPC_715_Aligned.sortedByCoord.out.bw",
-#                                   as="GRanges") 
-
-#DT <- DataTrack(allChromosomeCoverage)
-#allChromosomeCoverage2 <- import.bw("/mnt/gtklab01/linglab/tdp43/STAR/tdp43_cnp_spc_p21/tdp43_cnp_spc_p21_cko_merged.bw",
-#                                   as="GRanges") 
-
-#DT2 <- DataTrack(allChromosomeCoverage2)
-#plotTracks(c(DT,DT2), 
-#           from=33811426,to=33825667,
-#           chromosome="chr16",type="l")
-
 library(shinythemes)
 library(GenomicRanges)
 library(Gviz)
@@ -19,14 +6,15 @@ library(BSgenome.Mmusculus.UCSC.mm39)
 library(BSgenome.Hsapiens.UCSC.hg38)
 library(TxDb.Mmusculus.UCSC.mm39.refGene)
 library(TxDb.Hsapiens.UCSC.hg38.refGene)
+library(data.table)
 
-# Ideally these globals would be wrapped in some sort of object...
+# Mouse genome and gene annotation
 
 genome <- BSgenome.Mmusculus.UCSC.mm39
 txdb <- TxDb.Mmusculus.UCSC.mm39.refGene
 
 axis_track <- GenomeAxisTrack()
-#seq_track_mouse <- SequenceTrack(genome)
+
 gene_track_mouse <- GeneRegionTrack(
   txdb, transcriptAnnotation= "geneid", 
   stacking = "squish",
@@ -34,14 +22,15 @@ gene_track_mouse <- GeneRegionTrack(
 
 options(ucscChromosomeNames=FALSE)
 
+# Human genome and gene annotation
+
 genome_human <- BSgenome.Hsapiens.UCSC.hg38
 txdb_human <- TxDb.Hsapiens.UCSC.hg38.refGene
 
-#seq_track_human <- SequenceTrack(genome_human)
 gene_track_human <- GeneRegionTrack(
   txdb_human, genome=genome_human, showId=TRUE,transcriptAnnotation= "geneid", 
   stacking = "dense",
-  name="GM",background.title="white",col.title="black",col.axis="black")
+  name="Gene model",background.title="white",col.title="black",col.axis="black")
 options(ucscChromosomeNames=FALSE)
 
 
@@ -58,36 +47,20 @@ plot_genome <- function(location,y_lim,y_lim_CLIP, dataset_ctr, dataset_cko, sas
                                 background.title="white",col.title="black",col.axis="black")
   
   ctr <- AlignmentsTrack(dataset_ctr,
-                             isPaired = TRUE, #Paired-End Sequencing
-                             ylim=c(0,as.numeric(y_lim)),
-                             fill = "lightgrey",
-                             #col="lightgrey",
-                             name="Controls",
-                             background.title="white",col.title="black",col.axis="black")
+                         isPaired = TRUE, #Paired-End Sequencing
+                         ylim=c(0,as.numeric(y_lim)),
+                         fill = "lightgrey",
+                         #col="lightgrey",
+                         name="Controls",
+                         background.title="white",col.title="black",col.axis="black")
   
   cko <- AlignmentsTrack(dataset_cko,
-                             isPaired = TRUE, #Paired-End Sequencing
-                             ylim=c(0,as.numeric(y_lim)),
-                             fill = "#a7c7fa",
-                             #col="lightgrey",
-                             name="TDP43 cKOs",
-                             background.title="white",col.title="black",col.axis="black")
-  
-  #plotTracks(
-  #  list(axis_track,tdp43_CLIP, ctr, cko, gene_track_mouse),c(1.5,2,2,2,2),
-  #  chromosome=as.character(seqnames(location)),
-  #  from=start(location), to=end(location),type = c("coverage","sashimi"),
-  #  sashimiNumbers = as.character(sashimi_num),
-  #  sashimiScore = as.numeric(sashimi),
-  #  add35=TRUE)
-  
-  #plotTracks(
-  #  list(axis_track,tdp43_CLIP, gene_track_mouse),c(1.5,2,2),
-  #  chromosome=as.character(seqnames(location)),
-  #  from=start(location), to=end(location),type = c("coverage","sashimi"),
-  #  sashimiNumbers = as.character(sashimi_num),
-  #  sashimiScore = as.numeric(sashimi),
-  #  add35=TRUE)
+                         isPaired = TRUE, #Paired-End Sequencing
+                         ylim=c(0,as.numeric(y_lim)),
+                         fill = "#a7c7fa",
+                         #col="lightgrey",
+                         name="TDP43 cKOs",
+                         background.title="white",col.title="black",col.axis="black")
   
   plotTracks(
     list(axis_track,tdp43_CLIP, ctr, cko, gene_track_mouse),sizes=c(1.5,2,2,2,2),
@@ -125,12 +98,12 @@ browser_ui <- function(id) {
                                      "CNP-Cre Sciatic nerve p21"="/mnt/gtklab01/linglab/tdp43/STAR/tdp43_cnp_scn_p21/tdp43_cnp_scn_p21_cko_merged.bam",
                                      "CNP-Cre Spinal cord p60"="/mnt/gtklab01/linglab/tdp43/STAR/tdp43_cnp_spc_p60/tdp43_cnp_spc_p60_cko_merged.bam"),
                          selected = "Nestin-Cre Cortex e14")),
-    column(2,
-           selectInput(ns('clip_dataset'),
-                       label = 'Choose a TDP43 CLIP Dataset:',
-                       choices = c("Mouse"="/mnt/gtklab01/yongshan/tdp43_clip_seq/tdp43_clip_merged.bam",
-                                   "Human"="/mnt/gtklab01/yongshan/tdp43_clip_seq/human/Tollervey_2011_human_tdp43_clipseq.bam"),
-                       selected = "Mouse"))),
+      column(2,
+             selectInput(ns('clip_dataset'),
+                         label = 'Choose a TDP43 CLIP Dataset:',
+                         choices = c("Mouse"="/mnt/gtklab01/linglab/tdp43/clipseq_tdp43/mouse/tdp43_clip_merged.bam",
+                                     "Human"="/mnt/gtklab01/linglab/tdp43/clipseq_tdp43/human/Tollervey_2011_human_tdp43_clipseq.bam"),
+                         selected = "Mouse"))),
     h2("Configure plot"),
     fluidRow(
       column(2,
@@ -144,20 +117,18 @@ browser_ui <- function(id) {
       column(2,checkboxInput(ns("sashimi_num"), "Show splice junction counts", value = FALSE, width = NULL))),
     h2("Alignment"),
     plotOutput(ns("genome_plot"),width = "100%"),
-  h2("Adjust plot"),
-  fluidRow(
-    column(6,
-           actionButton(ns("go_left"), "<<"),
-           actionButton(ns("go_right"), ">>"),
-           actionButton(ns("zoom_in"), "Zoom in"),
-           actionButton(ns("zoom_out"), "Zoom out"),
-           downloadButton(ns("genome_alignment_plot"), "Download plot"))))
-    
+    h2("Adjust plot"),
+    fluidRow(
+      column(6,
+             actionButton(ns("go_left"), "<<"),
+             actionButton(ns("go_right"), ">>"),
+             actionButton(ns("zoom_in"), "Zoom in"),
+             actionButton(ns("zoom_out"), "Zoom out"),
+             downloadButton(ns("genome_alignment_plot"), "Download plot"))))
+  
 }
 
 browser_server <- function(input, output, session) {
-  #To observe input (eg exactly what brushing provides):
-  #observe({ print(as.list(input)) })
   
   location <- reactive({
     GRanges(input$location_str, seqinfo=seqinfo(genome))
@@ -234,6 +205,6 @@ browser_server <- function(input, output, session) {
       plot_genome( location(),y_lim(),y_lim_CLIP(),dataset_ctr(), dataset_cko(), sashimi(), sashimi_num(), clip_dataset())
       dev.off()
     }
-    )
-
+  )
+  
 }
