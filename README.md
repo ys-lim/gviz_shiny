@@ -5,7 +5,10 @@ These scripts can be adapted to different number and type of genomic datasets. I
 ![image](https://user-images.githubusercontent.com/68455070/183038283-e6344c81-9830-47a2-9e34-0970622ecdee.png)
 
 Start here:
-```git clone https://github.com/ys-lim/gviz_shiny.git```
+
+```
+git clone https://github.com/ys-lim/gviz_shiny.git
+```
 
 Datasets used for visualisation are from: 
 
